@@ -1,12 +1,12 @@
 {
   "name": "blog-platform",
   "version": "1.0.0",
-  "description": "A semi-static blog platform with Cloudflare Pages and D1",
+  "description": "A semi-static blog platform",
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
     "dev": "wrangler pages dev public",
-    "build": "esbuild src/index.ts --bundle --outfile=public/_worker.js --format=esm --define:global=globalThis --external:cloudflare:workers",
+    "build": "esbuild src/index.ts --bundle --outfile=public/_worker.js --format=esm --platform=browser --external:cloudflare:workers --alias:buffer=node:buffer --alias:crypto=node:crypto --alias:stream=node:stream --alias:util=node:util --alias:events=node:events",
     "deploy": "wrangler pages deploy public",
     "db:init": "wrangler d1 execute blog-db --file schema.sql"
   },
@@ -23,4 +23,3 @@
     "esbuild": "^0.19.11"
   }
 }
-
