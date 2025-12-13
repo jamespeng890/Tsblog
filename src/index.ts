@@ -1,13 +1,7 @@
+// ... (保留之前的 import)
 import {
   handleLogin,
-  handleRegister,
-  handleCreatePost,
-  handleGetPosts,
-  handleGetPost,
-  handleCreateComment,
-  handleGetComments,
-  handleGetPendingComments,
-  handleApproveComment,
+  // ... (保留其他 import)
 } from './api/handlers.js';
 import { parseAuthContext } from './utils/auth.js';
 
@@ -15,6 +9,7 @@ interface CloudflareEnv {
   DB: D1Database;
   ADMIN_USERNAME: string;
   ADMIN_PASSWORD: string;
+  ASSETS: Fetcher; // ✨ 新增：这是 Cloudflare 用来获取静态资源(public文件夹)的接口
 }
 
 export default {
@@ -22,7 +17,7 @@ export default {
     const url = new URL(request.url);
     const pathname = url.pathname;
 
-    // CORS设置
+    // ... (保留 CORS 设置 headers)
     const headers = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
@@ -30,7 +25,6 @@ export default {
       'Content-Type': 'application/json; charset=utf-8',
     };
 
-    // 处理CORS预检请求
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers });
     }
@@ -41,10 +35,16 @@ export default {
         return handleApiRequest(request, env);
       }
 
-      // 静态文件服务
+      // ✨ 关键修改：如果是静态文件（网页），交给 Cloudflare 静态资产处理器
+      // 只有当 env.ASSETS 存在时才调用（本地开发和线上环境可能不同）
+      if (env.ASSETS) {
+         return env.ASSETS.fetch(request);
+      }
+      
       return new Response('Not Found', { status: 404, headers });
     } catch (error) {
       console.error('Error:', error);
+      // ... (错误处理保持不变)
       return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
         status: 500,
         headers,
@@ -53,85 +53,4 @@ export default {
   },
 };
 
-async function handleApiRequest(request: Request, env: CloudflareEnv): Promise<Response> {
-  const url = new URL(request.url);
-  const pathname = url.pathname;
-  const method = request.method;
-
-  // 解析请求体
-  let body: any = {};
-  if (method !== 'GET' && method !== 'OPTIONS') {
-    try {
-      body = await request.json();
-    } catch {
-      // 忽略JSON解析错误
-    }
-  }
-
-  // 解析认证信息
-  const auth = parseAuthContext(request);
-
-  // 构建API请求对象
-  const apiRequest = {
-    method,
-    path: pathname,
-    body,
-    auth,
-    db: env.DB,
-    env: {
-      ADMIN_USERNAME: env.ADMIN_USERNAME,
-      ADMIN_PASSWORD: env.ADMIN_PASSWORD,
-    },
-  };
-
-  let response;
-
-  // 路由处理
-  if (pathname === '/api/login') {
-    response = await handleLogin(apiRequest);
-  } else if (pathname === '/api/register') {
-    response = await handleRegister(apiRequest);
-  } else if (pathname === '/api/posts') {
-    if (method === 'POST') {
-      response = await handleCreatePost(apiRequest);
-    } else if (method === 'GET') {
-      response = await handleGetPosts(apiRequest);
-    } else {
-      response = { status: 405, body: { error: '方法不允许' } };
-    }
-  } else if (pathname.startsWith('/api/posts/')) {
-    const slug = pathname.replace('/api/posts/', '');
-    response = await handleGetPost(apiRequest, slug);
-  } else if (pathname === '/api/comments') {
-    if (method === 'POST') {
-      response = await handleCreateComment(apiRequest);
-    } else {
-      response = { status: 405, body: { error: '方法不允许' } };
-    }
-  } else if (pathname.startsWith('/api/comments/')) {
-    const parts = pathname.replace('/api/comments/', '').split('/');
-    if (parts[0] === 'pending') {
-      response = await handleGetPendingComments(apiRequest);
-    } else {
-      const commentId = parseInt(parts[0]);
-      if (parts[1] === 'approve') {
-        response = await handleApproveComment(apiRequest, commentId, body.status);
-      } else {
-        const postId = parseInt(parts[0]);
-        response = await handleGetComments(apiRequest, postId);
-      }
-    }
-  } else {
-    response = { status: 404, body: { error: 'Not Found' } };
-  }
-
-  const responseBody = typeof response.body === 'string' ? response.body : JSON.stringify(response.body);
-
-  return new Response(responseBody, {
-    status: response.status,
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      'Access-Control-Allow-Origin': '*',
-    },
-  });
-}
+// ... (handleApiRequest 函数保持不变)
