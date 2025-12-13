@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "marked": "^11.1.1",
-    "jsonwebtoken": "^9.1.2"
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "typescript": "^5.3.3",
