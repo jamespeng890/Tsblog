@@ -1,13 +1,19 @@
 name = "blog-platform"
 compatibility_date = "2024-01-15"
 
-# 👇👇👇 必须加上这一行，开启 Node.js 兼容模式，否则登录会报错 500 👇👇👇
+# 👇 解决 500 错误的核心开关，必须要有
 compatibility_flags = ["nodejs_compat"]
 
-# 指定 Pages 的构建输出目录
+# 指定输出目录
 pages_build_output_dir = "public"
 
-# 数据库绑定
+# 👇 既然后台锁了，我们就把密码直接写在这里
+# 这样 Cloudflare 部署时会自动读取，不用去后台配了
+[vars]
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "123456"  # 你可以在这里改成你想要的密码
+
+# 数据库绑定 (保留你之前改对的 ID)
 [[d1_databases]]
 binding = "DB"
 database_name = "blog-db"
