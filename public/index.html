@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的博客 - My Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f5f7 0%, #ffffff 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav a {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav a:hover {
+            color: #667eea;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid #e0e0e0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 24px;
+        }
+
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .post-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .post-header {
+            padding: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .post-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .post-meta {
+            font-size: 12px;
+            opacity: 0.9;
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .post-body {
+            padding: 24px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .post-excerpt {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 16px;
+            line-height: 1.6;
+            flex: 1;
+        }
+
+        .post-footer {
+            display: flex;
+            gap: 12px;
+            padding-top: 16px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .read-more {
+            display: inline-block;
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .read-more:hover {
+            color: #764ba2;
+        }
+
+        .article-page {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .article-header {
+            margin-bottom: 32px;
+            padding-bottom: 32px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .article-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .article-meta {
+            display: flex;
+            gap: 24px;
+            font-size: 14px;
+            color: #999;
+        }
+
+        .article-content {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            color: #555;
+        }
+
+        .article-content h2 {
+            font-size: 24px;
+            margin: 32px 0 16px 0;
+            font-weight: 600;
+        }
+
+        .article-content h3 {
+            font-size: 20px;
+            margin: 24px 0 12px 0;
+            font-weight: 600;
+        }
+
+        .article-content p {
+            margin-bottom: 16px;
+        }
+
+        .article-content ul,
+        .article-content ol {
+            margin-left: 24px;
+            margin-bottom: 16px;
+        }
+
+        .article-content li {
+            margin-bottom: 8px;
+        }
+
+        .article-content code {
+            background: #f5f5f7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #d73a49;
+        }
+
+        .article-content pre {
+            background: #f5f5f7;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            margin-bottom: 16px;
+        }
+
+        .article-content pre code {
+            background: none;
+            padding: 0;
+            color: #333;
+        }
+
+        .article-content blockquote {
+            border-left: 4px solid #d0d0d0;
+            margin-left: 0;
+            padding-left: 16px;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 16px;
+        }
+
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 24px 0;
+        }
+
+        .comments-section {
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .comments-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .comment-form {
+            background: #f5f5f7;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .comment {
+            padding: 20px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .comment-date {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 12px;
+        }
+
+        .comment-content {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 24px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            color: #764ba2;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 0 16px;
+            }
+
+            .nav {
+                gap: 16px;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .posts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .article-page {
+                padding: 24px;
+            }
+
+            .article-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部 -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">✨ 博客</div>
+            <div class="nav">
+                <a href="/">首页</a>
+                <a href="/blog-login.html">登录</a>
+                <div class="nav-buttons">
+                    <a href="/blog-login.html" class="btn btn-secondary">登录</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 首页视图 -->
+        <div id="homeView">
+            <div class="hero">
+                <h1>欢迎来到我的博客</h1>
+                <p>分享知识、经验和思想</p>
+            </div>
+
+            <div class="posts-grid" id="postsGrid">
+                <div class="empty-state">
+                    <div class="empty-icon">📝</div>
+                    <p>加载文章中...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 文章详情视图 -->
+        <div id="articleView" class="hidden">
+            <a href="/" class="back-btn" onclick="showHome()">← 返回列表</a>
+
+            <div class="article-page">
+                <div class="article-header">
+                    <h1 class="article-title" id="articleTitle"></h1>
+                    <div class="article-meta">
+                        <span id="articleDate"></span>
+                        <span id="articleAuthor"></span>
+                        <span id="articleViews"></span>
+                    </div>
+                </div>
+
+                <div class="article-content" id="articleContent"></div>
+
+                <!-- 评论区 -->
+                <div class="comments-section">
+                    <h2 class="comments-title">评论</h2>
+
+                    <div class="comment-form">
+                        <form onsubmit="submitComment(event)" id="commentForm">
+                            <div class="form-group">
+                                <label for="authorName">昵称 *</label>
+                                <input type="text" id="authorName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="authorEmail">邮箱</label>
+                                <input type="email" id="authorEmail">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="commentContent">评论内容 *</label>
+                                <textarea id="commentContent" required></textarea>
+                            </div>
+
+                            <button type="submit" class="submit-btn">发表评论</button>
+                        </form>
+                    </div>
+
+                    <div id="commentsList">
+                        <div class="empty-state">
+                            <p>暂无评论，成为第一个评论者吧！</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentPostId = null;
+
+        // 页面加载
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPosts();
+        });
+
+        async function loadPosts() {
+            try {
+                const response = await fetch(`${API_BASE}/posts`);
+                const data = await response.json();
+
+                if (data.success && data.posts && data.posts.length > 0) {
+                    const html = data.posts
+                        .map(
+                            (post) => `
+                        <div class="post-card" onclick="showArticle('${post.slug}')">
+                            <div class="post-header">
+                                <div class="post-title">${escapeHtml(post.title)}</div>
+                                <div class="post-meta">
+                                    <span>${new Date(post.created_at).toLocaleDateString('zh-CN')}</span>
+                                    <span>${post.views} 次浏览</span>
+                                </div>
+                            </div>
+                            <div class="post-body">
+                                <div class="post-excerpt">暂无摘要</div>
+                                <a href="javascript:void(0)" class="read-more">阅读全文 →</a>
+                            </div>
+                        </div>
+                    `
+                        )
+                        .join('');
+                    document.getElementById('postsGrid').innerHTML = html;
+                } else {
+                    document.getElementById('postsGrid').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <p>暂无文章</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('加载文章失败:', error);
+                document.getElementById('postsGrid').innerHTML = `
+                    <div class="empty-state">
+                        <p>加载失败，请刷新重试</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function showArticle(slug) {
+            try {
+                const response = await fetch(`${API_BASE}/posts/${slug}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    alert('文章不存在');
+                    return;
+                }
+
+                const post = data.post;
+                currentPostId = post.id;
+
+                document.getElementById('articleTitle').textContent = post.title;
+                document.getElementById('articleDate').textContent = `📅 ${new Date(post.created_at).toLocaleDateString('zh-CN')}`;
+                document.getElementById('articleAuthor').textContent = `✍️ ${post.author_id === 0 ? '管理员' : '用户'}`;
+                document.getElementById('articleViews').textContent = `👁️ ${post.views} 次浏览`;
+                document.getElementById('articleContent').innerHTML = post.content;
+
+                // 加载评论
+                loadComments(post.id);
+
+                // 切换视图
+                document.getElementById('homeView').classList.add('hidden');
+                document.getElementById('articleView').classList.remove('hidden');
+
+                // 滚动到顶部
+                window.scrollTo(0, 0);
+            } catch (error) {
+                console.error('加载文章失败:', error);
+                alert('加载文章失败');
+            }
+        }
+
+        function showHome() {
+            document.getElementById('articleView').classList.add('hidden');
+            document.getElementById('homeView').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        async function loadComments(postId) {
+            try {
+                const response = await fetch(`${API_BASE}/comments/${postId}`);
+                const data = await response.json();
+
+                if (data.comments && data.comments.length > 0) {
+                    const html = data.comments
+                        .map(
+                            (comment) => `
+                        <div class="comment">
+                            <div class="comment-author">${escapeHtml(comment.author_name)}</div>
+                            <div class="comment-date">${new Date(comment.created_at).toLocaleString('zh-CN')}</div>
+                            <div class="comment-content">${escapeHtml(comment.content)}</div>
+                        </div>
+                    `
+                        )
+                        .join('');
+                    document.getElementById('commentsList').innerHTML = html;
+                } else {
+                    document.getElementById('commentsList').innerHTML = `
+                        <div class="empty-state">
+                            <p>暂无评论，成为第一个评论者吧！</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('加载评论失败:', error);
+            }
+        }
+
+        async function submitComment(event) {
+            event.preventDefault();
+
+            const authorName = document.getElementById('authorName').value;
+            const authorEmail = document.getElementById('authorEmail').value;
+            const content = document.getElementById('commentContent').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        postId: currentPostId,
+                        authorName,
+                        authorEmail,
+                        content,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('评论已提交，等待管理员审核');
+                    document.getElementById('commentForm').reset();
+                    loadComments(currentPostId);
+                } else {
+                    alert('评论失败，请重试');
+                }
+            } catch (error) {
+                console.error('提交评论失败:', error);
+                alert('网络错误');
+            }
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;',
+            };
+            return text.replace(/[&<>"']/g, (char) => map[char]);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理面板 - Blog Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f7;
+            color: #333;
+        }
+
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 8px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .nav-link:hover {
+            background: #f5f5f7;
+            color: #333;
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+        }
+
+        .content-header {
+            margin-bottom: 32px;
+        }
+
+        .content-header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .content-header p {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: #f5f5f7;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            color: #666;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .table td {
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fef3e0;
+            color: #e67e22;
+        }
+
+        .status-approved {
+            background: #e0f4e0;
+            color: #27ae60;
+        }
+
+        .status-rejected {
+            background: #ffe0e0;
+            color: #e74c3c;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="email"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: #f8f9ff;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-logout:hover {
+            background: #c0392b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .user-info {
+                position: static;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                🎯 管理面板
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a class="nav-link active" onclick="switchView('dashboard')">📊 仪表盘</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="switchView('comments')">💬 评论管理</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="switchView('posts')">📝 文章管理</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="switchView('users')">👥 用户管理</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" onclick="switchView('settings')">⚙️ 系统设置</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 用户信息 -->
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div id="userName">管理员</div>
+                <button class="btn-logout" onclick="logout()">登出</button>
+            </div>
+
+            <!-- 仪表盘视图 -->
+            <div id="dashboardView">
+                <div class="content-header">
+                    <h1>仪表盘</h1>
+                    <p>欢迎回来！这是您的博客管理中心</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalPosts">0</div>
+                        <div class="stat-label">发布文章</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="pendingComments">0</div>
+                        <div class="stat-label">待审核评论</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalUsers">0</div>
+                        <div class="stat-label">注册用户</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalViews">0</div>
+                        <div class="stat-label">浏览总次数</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        快速操作
+                    </div>
+                    <p style="margin-bottom: 16px;">使用以下快速链接来管理您的博客：</p>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn btn-primary" onclick="switchView('posts')">新建文章</button>
+                        <button class="btn btn-primary" onclick="switchView('comments')">查看评论</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 评论管理视图 -->
+            <div id="commentsView" class="hidden">
+                <div class="content-header">
+                    <h1>评论管理</h1>
+                    <p>审核和管理用户评论</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">待审核评论</div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>作者</th>
+                                <th>内容</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="commentsTable">
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 40px;">加载中...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 文章管理视图 -->
+            <div id="postsView" class="hidden">
+                <div class="content-header">
+                    <h1>文章管理</h1>
+                    <p>创建、编辑和删除博客文章</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span>发布新文章</span>
+                        <button class="btn btn-primary" onclick="openPostModal()">+ 新建文章</button>
+                    </div>
+
+                    <div style="display: none;" id="postForm">
+                        <form onsubmit="handleCreatePost(event)">
+                            <div class="form-group">
+                                <label for="postTitle">文章标题</label>
+                                <input type="text" id="postTitle" name="title" placeholder="输入文章标题" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="postContent">Markdown内容</label>
+                                <textarea id="postContent" name="content" placeholder="使用Markdown格式编写文章..." required></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="postPublished" name="published">
+                                    发布文章
+                                </label>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">发布文章</button>
+                                <button type="button" class="btn" onclick="closePostForm()">取消</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">我的文章</div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>标题</th>
+                                <th>创建时间</th>
+                                <th>浏览次数</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="postsTable">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 40px;">加载中...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 用户管理视图 -->
+            <div id="usersView" class="hidden">
+                <div class="content-header">
+                    <h1>用户管理</h1>
+                    <p>管理系统中的用户账户</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">用户列表</div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>用户名</th>
+                                <th>邮箱</th>
+                                <th>注册时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 40px;">加载中...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 系统设置视图 -->
+            <div id="settingsView" class="hidden">
+                <div class="content-header">
+                    <h1>系统设置</h1>
+                    <p>配置您的博客系统</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">基本设置</div>
+                    <form onsubmit="handleSaveSettings(event)">
+                        <div class="form-group">
+                            <label for="blogTitle">博客标题</label>
+                            <input type="text" id="blogTitle" placeholder="输入博客标题">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="blogDescription">博客描述</label>
+                            <textarea id="blogDescription" placeholder="输入博客描述"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="blogAuthor">博客作者</label>
+                            <input type="text" id="blogAuthor" placeholder="输入博客作者">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">保存设置</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentView = 'dashboard';
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserInfo();
+            loadDashboardStats();
+        });
+
+        function switchView(view) {
+            currentView = view;
+
+            // 隐藏所有视图
+            document.querySelectorAll('[id$="View"]').forEach(el => {
+                el.classList.add('hidden');
+            });
+
+            // 显示选定视图
+            document.getElementById(view + 'View').classList.remove('hidden');
+
+            // 更新导航
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 加载数据
+            if (view === 'comments') {
+                loadComments();
+            } else if (view === 'posts') {
+                loadPosts();
+            } else if (view === 'users') {
+                loadUsers();
+            }
+        }
+
+        function loadUserInfo() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userName').textContent = user.username || '管理员';
+            document.getElementById('userAvatar').textContent = (user.username || 'A')[0].toUpperCase();
+        }
+
+        function loadDashboardStats() {
+            // 这里应该从API获取统计数据
+            // 暂时使用模拟数据
+            document.getElementById('totalPosts').textContent = '12';
+            document.getElementById('pendingComments').textContent = '3';
+            document.getElementById('totalUsers').textContent = '45';
+            document.getElementById('totalViews').textContent = '1,234';
+        }
+
+        function loadComments() {
+            // 从API获取待审核评论
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const token = localStorage.getItem('token');
+
+            fetch(`${API_BASE}/comments/pending`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.comments && data.comments.length > 0) {
+                        const html = data.comments.map(c => `
+                            <tr>
+                                <td>${c.author_name}</td>
+                                <td>${c.content.substring(0, 50)}...</td>
+                                <td>${new Date(c.created_at).toLocaleDateString('zh-CN')}</td>
+                                <td class="btn-group">
+                                    <button class="btn btn-success" onclick="approveComment(${c.id})">批准</button>
+                                    <button class="btn btn-danger" onclick="rejectComment(${c.id})">拒绝</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                        document.getElementById('commentsTable').innerHTML = html;
+                    } else {
+                        document.getElementById('commentsTable').innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px;">暂无待审核评论</td></tr>';
+                    }
+                });
+        }
+
+        function loadPosts() {
+            const token = localStorage.getItem('token');
+            // 这里应该从API获取用户的文章
+        }
+
+        function loadUsers() {
+            const token = localStorage.getItem('token');
+            // 这里应该从API获取用户列表
+        }
+
+        function approveComment(commentId) {
+            const token = localStorage.getItem('token');
+            fetch(`${API_BASE}/comments/${commentId}/approve`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: 'approved' })
+            })
+                .then(r => r.json())
+                .then(() => {
+                    loadComments();
+                    alert('评论已批准');
+                });
+        }
+
+        function rejectComment(commentId) {
+            const token = localStorage.getItem('token');
+            fetch(`${API_BASE}/comments/${commentId}/approve`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: 'rejected' })
+            })
+                .then(r => r.json())
+                .then(() => {
+                    loadComments();
+                    alert('评论已拒绝');
+                });
+        }
+
+        function openPostModal() {
+            document.getElementById('postForm').style.display = 'block';
+        }
+
+        function closePostForm() {
+            document.getElementById('postForm').style.display = 'none';
+        }
+
+        function handleCreatePost(event) {
+            event.preventDefault();
+            const title = document.getElementById('postTitle').value;
+            const content = document.getElementById('postContent').value;
+            const published = document.getElementById('postPublished').checked;
+            const token = localStorage.getItem('token');
+
+            fetch(`${API_BASE}/posts`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(r => r.json())
+                .then(() => {
+                    alert('文章发布成功');
+                    closePostForm();
+                    loadPosts();
+                });
+        }
+
+        function handleSaveSettings(event) {
+            event.preventDefault();
+            alert('设置已保存');
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/blog-login.html';
+        }
+    </script>
+</body>
+</html>

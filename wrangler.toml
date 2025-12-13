@@ -1,0 +1,21 @@
+name = "blog-platform"
+type = "javascript"
+compatibility_date = "2024-01-15"
+
+[env.production]
+route = "example.com/*"
+zone_id = "your-zone-id"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "blog-db"
+database_id = "your-database-id"
+
+[build]
+command = "npm run build"
+cwd = "./"
+main = "dist/index.js"
+
+[build.upload]
+format = "modules"
+main = "./dist/index.js"
