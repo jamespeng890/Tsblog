@@ -1,11 +1,25 @@
 {
   "name": "blog-platform",
-  // ... 其他部分不变 ...
+  "version": "1.0.0",
+  "description": "A semi-static blog platform with Cloudflare Pages and D1",
+  "type": "module",
+  "main": "src/index.ts",
   "scripts": {
     "dev": "wrangler pages dev public",
     "build": "esbuild src/index.ts --bundle --outfile=public/_worker.js --format=esm --platform=node --external:cloudflare:workers",
     "deploy": "wrangler pages deploy public",
     "db:init": "wrangler d1 execute blog-db --file schema.sql"
   },
-  // ... 依赖部分不变 ...
+  "dependencies": {
+    "marked": "^11.1.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "wrangler": "^3.26.1",
+    "@cloudflare/workers-types": "^4.20231218.0",
+    "@types/node": "^20.10.5",
+    "@types/jsonwebtoken": "^9.0.5",
+    "esbuild": "^0.19.11"
+  }
 }
