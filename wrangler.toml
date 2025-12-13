@@ -1,11 +1,10 @@
 name = "blog-platform"
 compatibility_date = "2024-01-15"
 
-# 指定 Pages 的构建输出目录
+# 告诉 Cloudflare 这是一个 Pages 项目
 pages_build_output_dir = "public"
 
-# 数据库绑定 (保持不变)
 [[d1_databases]]
 binding = "DB"
 database_name = "blog-db"
-database_id = "your-database-id"
+database_id = "d3f0184-09c4-41af-8d56-ea2d5cd42e79"
