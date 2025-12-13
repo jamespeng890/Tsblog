@@ -1,11 +1,5 @@
-// 👇👇👇 必须加在文件最开头，解决 "Dynamic require of buffer" 报错 👇👇👇
+// 1. 先写所有的 import (必须在最上面)
 import { Buffer } from 'node:buffer';
-(globalThis as any).Buffer = Buffer;
-
-// ... (下面接你原来的 import 代码)
-import {
-  handleLogin,
-// ...
 import {
   handleLogin,
   handleRegister,
@@ -18,6 +12,10 @@ import {
   handleApproveComment,
 } from './api/handlers.js';
 import { parseAuthContext } from './utils/auth.js';
+
+// 2. import 结束后，立即注入 Buffer Polyfill
+// 这行代码解决了 "Dynamic require of buffer" 的报错
+(globalThis as any).Buffer = Buffer;
 
 interface CloudflareEnv {
   DB: D1Database;
@@ -44,21 +42,20 @@ export default {
     }
 
     try {
-      // 1. 先处理 API 请求
+      // API 路由处理
       if (pathname.startsWith('/api/')) {
         return await handleApiRequest(request, env);
       }
 
-      // 2. 再处理静态网页 (解决 404 问题)
+      // 静态资源服务 (前端页面)
       if (env.ASSETS) {
          return await env.ASSETS.fetch(request);
       }
       
-      // 3. 如果都不是，返回 404
       return new Response('Not Found', { status: 404, headers });
 
     } catch (error: any) {
-      // 捕获并打印详细错误，解决 500 莫名其妙的问题
+      // 错误捕获
       console.error('Fatal Error:', error);
       const errorMessage = error.message || 'Unknown Error';
       const errorStack = error.stack || '';
@@ -74,7 +71,7 @@ export default {
   },
 };
 
-// API 路由分发逻辑
+// API 分发逻辑
 async function handleApiRequest(request: Request, env: CloudflareEnv): Promise<Response> {
   const url = new URL(request.url);
   const pathname = url.pathname;
@@ -85,13 +82,12 @@ async function handleApiRequest(request: Request, env: CloudflareEnv): Promise<R
     try {
       body = await request.json();
     } catch {
-      // 忽略 JSON 解析错误
+      // ignore
     }
   }
 
   const auth = parseAuthContext(request);
 
-  // 这里的 env 传递非常关键，确保 handlers 能读到 wranger.toml 里的密码
   const apiRequest = {
     method,
     path: pathname,
@@ -106,7 +102,6 @@ async function handleApiRequest(request: Request, env: CloudflareEnv): Promise<R
 
   let response;
 
-  // 路由匹配
   if (pathname === '/api/login') {
     response = await handleLogin(apiRequest);
   } else if (pathname === '/api/register') {
@@ -117,7 +112,7 @@ async function handleApiRequest(request: Request, env: CloudflareEnv): Promise<R
     } else if (method === 'GET') {
       response = await handleGetPosts(apiRequest);
     } else {
-      response = { status: 405, body: { error: '方法不允许' } };
+      response = { status: 405, body: { error: 'Method Not Allowed' } };
     }
   } else if (pathname.startsWith('/api/posts/')) {
     const slug = pathname.replace('/api/posts/', '');
@@ -126,7 +121,7 @@ async function handleApiRequest(request: Request, env: CloudflareEnv): Promise<R
     if (method === 'POST') {
       response = await handleCreateComment(apiRequest);
     } else {
-      response = { status: 405, body: { error: '方法不允许' } };
+      response = { status: 405, body: { error: 'Method Not Allowed' } };
     }
   } else if (pathname.startsWith('/api/comments/')) {
     const parts = pathname.replace('/api/comments/', '').split('/');
@@ -155,4 +150,3 @@ async function handleApiRequest(request: Request, env: CloudflareEnv): Promise<R
     },
   });
 }
-
