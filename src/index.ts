@@ -1,3 +1,11 @@
+// 👇👇👇 必须加在文件最开头，解决 "Dynamic require of buffer" 报错 👇👇👇
+import { Buffer } from 'node:buffer';
+(globalThis as any).Buffer = Buffer;
+
+// ... (下面接你原来的 import 代码)
+import {
+  handleLogin,
+// ...
 import {
   handleLogin,
   handleRegister,
@@ -147,3 +155,4 @@ async function handleApiRequest(request: Request, env: CloudflareEnv): Promise<R
     },
   });
 }
+
