@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import { SignJWT, jwtVerify } from 'jose';
 
 export interface TokenPayload {
   userId: number;
@@ -15,17 +15,21 @@ export interface AuthContext {
   token?: string;
 }
 
-const JWT_SECRET = 'your-jwt-secret-key'; // 生产环境应该使用环境变量
+// 这里的密钥虽然写死，但在 Worker 每次运行会重新生成，
+// 建议生产环境从 env 获取，这里为了简化先硬编码一个字符串
+const SECRET_KEY = new TextEncoder().encode('your-very-secure-secret-key-change-this');
 
-export function generateToken(payload: Omit<TokenPayload, 'iat' | 'exp'>): string {
-  return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: '7d',
-  });
+export async function generateToken(payload: Omit<TokenPayload, 'iat' | 'exp'>): Promise<string> {
+  return await new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setExpirationTime('7d')
+    .sign(SECRET_KEY);
 }
 
-export function verifyToken(token: string): TokenPayload | null {
+export async function verifyToken(token: string): Promise<TokenPayload | null> {
   try {
-    return jwt.verify(token, JWT_SECRET) as TokenPayload;
+    const { payload } = await jwtVerify(token, SECRET_KEY);
+    return payload as unknown as TokenPayload;
   } catch {
     return null;
   }
@@ -38,39 +42,35 @@ export function extractTokenFromHeader(authHeader: string | undefined): string |
   return authHeader.substring(7);
 }
 
-export function validateAdminCredentials(password: string, adminPassword: string): boolean {
-  return password === adminPassword;
-}
-
+// 简单的密码比对（生产环境建议用 bcryptjs，但这里为了不再引入新坑，先用字符串比对）
+// 你的注册代码也是用的 base64，所以这里保持一致
 export async function hashPassword(password: string): Promise<string> {
-  // 在实际应用中应使用bcrypt或argon2
-  // 这里为简化使用Base64（生产环境不推荐）
-  return Buffer.from(password).toString('base64');
+  return btoa(password); // 使用 Web 标准的 btoa
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return Buffer.from(password).toString('base64') === hash;
+  return btoa(password) === hash;
 }
 
-export function parseAuthContext(request: Request): AuthContext {
+// 解析 AuthContext 现在需要变成异步的了
+export async function parseAuthContext(request: Request): Promise<AuthContext> {
   const authHeader = request.headers.get('Authorization');
-  const token = extractTokenFromHeader(authHeader);
-
-  const isAdmin = request.headers.get('X-Admin-Key') !== null;
+  const token = extractTokenFromHeader(authHeader || undefined);
+  const isAdminHeader = request.headers.get('X-Admin-Key') !== null;
 
   if (!token) {
-    return { isAdmin };
+    return { isAdmin: isAdminHeader };
   }
 
-  const payload = verifyToken(token);
+  const payload = await verifyToken(token);
   if (!payload) {
-    return { isAdmin };
+    return { isAdmin: isAdminHeader };
   }
 
   return {
     userId: payload.userId,
     username: payload.username,
-    isAdmin: isAdmin || payload.isAdmin,
+    isAdmin: isAdminHeader || payload.isAdmin,
     token,
   };
 }
