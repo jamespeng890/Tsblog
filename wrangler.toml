@@ -7,4 +7,5 @@ pages_build_output_dir = "public"
 [[d1_databases]]
 binding = "DB"
 database_name = "blog-db"
-database_id = "d3f0184-09c4-41af-8d56-ea2d5cd42e79"
+database_id = "ed3f0184-09c4-41af-8d56-ea2d5cd42e79"
+
