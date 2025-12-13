@@ -1,25 +1,11 @@
 name = "blog-platform"
-type = "javascript"
 compatibility_date = "2024-01-15"
 
-# 指定 Pages 的构建输出目录为 public
+# 指定 Pages 的构建输出目录
 pages_build_output_dir = "public"
 
-[env.production]
-route = "example.com/*"
-zone_id = "your-zone-id"
-
+# 数据库绑定 (保持不变)
 [[d1_databases]]
 binding = "DB"
 database_name = "blog-db"
 database_id = "your-database-id"
-
-[build]
-command = "npm run build"
-cwd = "./"
-main = "dist/index.js"
-
-[build.upload]
-format = "modules"
-main = "./dist/index.js"
-
