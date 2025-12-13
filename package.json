@@ -6,7 +6,7 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "wrangler pages dev public",
-    "build": "esbuild src/index.ts --bundle --outfile=public/_worker.js --format=esm --platform=node --external:cloudflare:workers",
+    "build": "esbuild src/index.ts --bundle --outfile=public/_worker.js --format=esm --define:global=globalThis --external:cloudflare:workers",
     "deploy": "wrangler pages deploy public",
     "db:init": "wrangler d1 execute blog-db --file schema.sql"
   },
@@ -23,3 +23,4 @@
     "esbuild": "^0.19.11"
   }
 }
+
