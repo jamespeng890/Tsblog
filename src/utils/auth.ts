@@ -15,20 +15,33 @@ export interface AuthContext {
   token?: string;
 }
 
-// 这里的密钥虽然写死，但在 Worker 每次运行会重新生成，
-// 建议生产环境从 env 获取，这里为了简化先硬编码一个字符串
-const SECRET_KEY = new TextEncoder().encode('your-very-secure-secret-key-change-this');
+// JWT Secret Key - SECURITY WARNING:
+// In production, you MUST set JWT_SECRET as an environment variable in Cloudflare Pages.
+// This hardcoded value is only for development and is NOT secure for production use.
+// The secret should be a long, random string (at least 32 characters).
+let SECRET_KEY: Uint8Array;
 
-export async function generateToken(payload: Omit<TokenPayload, 'iat' | 'exp'>): Promise<string> {
+function getSecretKey(jwtSecret?: string): Uint8Array {
+  if (!SECRET_KEY) {
+    const secret = jwtSecret || 'your-very-secure-secret-key-change-this-in-production';
+    if (secret === 'your-very-secure-secret-key-change-this-in-production') {
+      console.warn('WARNING: Using default JWT secret. Set JWT_SECRET environment variable in production!');
+    }
+    SECRET_KEY = new TextEncoder().encode(secret);
+  }
+  return SECRET_KEY;
+}
+
+export async function generateToken(payload: Omit<TokenPayload, 'iat' | 'exp'>, jwtSecret?: string): Promise<string> {
   return await new SignJWT({ ...payload })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('7d')
-    .sign(SECRET_KEY);
+    .sign(getSecretKey(jwtSecret));
 }
 
-export async function verifyToken(token: string): Promise<TokenPayload | null> {
+export async function verifyToken(token: string, jwtSecret?: string): Promise<TokenPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, SECRET_KEY);
+    const { payload } = await jwtVerify(token, getSecretKey(jwtSecret));
     return payload as unknown as TokenPayload;
   } catch {
     return null;
@@ -103,7 +116,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 // 解析 AuthContext 现在需要变成异步的了
-export async function parseAuthContext(request: Request): Promise<AuthContext> {
+export async function parseAuthContext(request: Request, jwtSecret?: string): Promise<AuthContext> {
   const authHeader = request.headers.get('Authorization');
   const token = extractTokenFromHeader(authHeader || undefined);
   const isAdminHeader = request.headers.get('X-Admin-Key') !== null;
@@ -112,7 +125,7 @@ export async function parseAuthContext(request: Request): Promise<AuthContext> {
     return { isAdmin: isAdminHeader };
   }
 
-  const payload = await verifyToken(token);
+  const payload = await verifyToken(token, jwtSecret);
   if (!payload) {
     return { isAdmin: isAdminHeader };
   }

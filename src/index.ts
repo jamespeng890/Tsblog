@@ -15,6 +15,7 @@ interface CloudflareEnv {
   DB: D1Database;
   ADMIN_USERNAME: string;
   ADMIN_PASSWORD: string;
+  JWT_SECRET?: string;
   ASSETS: Fetcher;
 }
 
@@ -78,7 +79,7 @@ async function handleApiRequest(request: Request, env: CloudflareEnv): Promise<R
     } catch {}
   }
 
-  const auth = await parseAuthContext(request);
+  const auth = await parseAuthContext(request, env.JWT_SECRET);
 
   const apiRequest = {
     method,
@@ -89,6 +90,7 @@ async function handleApiRequest(request: Request, env: CloudflareEnv): Promise<R
     env: {
       ADMIN_USERNAME: env.ADMIN_USERNAME,
       ADMIN_PASSWORD: env.ADMIN_PASSWORD,
+      JWT_SECRET: env.JWT_SECRET,
     },
   };
 

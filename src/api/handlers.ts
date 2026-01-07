@@ -58,11 +58,11 @@ export async function handleLogin(request: ApiRequest): Promise<ApiResponse> {
       return { status: 401, body: { error: '管理员凭证无效' } };
     }
 
-    const token = generateToken({
+    const token = await generateToken({
       userId: 0,
       username: adminUsername,
       isAdmin: true,
-    });
+    }, request.env['JWT_SECRET']);
 
     return {
       status: 200,
@@ -93,11 +93,11 @@ export async function handleLogin(request: ApiRequest): Promise<ApiResponse> {
       return { status: 401, body: { error: '密码错误' } };
     }
 
-    const token = generateToken({
+    const token = await generateToken({
       userId: user.id,
       username: user.username,
       isAdmin: false,
-    });
+    }, request.env['JWT_SECRET']);
 
     return {
       status: 200,
