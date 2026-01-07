@@ -11,14 +11,14 @@
     "db:init": "wrangler d1 execute blog-db --file schema.sql"
   },
   "dependencies": {
-    "marked": "^11.1.1",
-    "jose": "^5.2.0"
+    "jose": "^5.2.0",
+    "marked": "^11.1.1"
   },
   "devDependencies": {
-    "typescript": "^5.3.3",
-    "wrangler": "^3.26.1",
     "@cloudflare/workers-types": "^4.20231218.0",
     "@types/node": "^20.10.5",
-    "esbuild": "^0.19.11"
+    "esbuild": "^0.27.2",
+    "typescript": "^5.3.3",
+    "wrangler": "^3.26.1"
   }
 }

@@ -94,10 +94,11 @@ function extractPlainText(html: string, maxLength: number = 200): string {
 export function generateSlug(title: string): string {
   return title
     .toLowerCase()
-    .replace(/[^\w\s-]/g, '') // 移除特殊字符
+    .replace(/[^\w\s\u4e00-\u9fa5-]/g, '') // 移除特殊字符，保留中文
     .trim()
-    .replace(/\s+/g, '-') // 空格转换为连字符
-    .replace(/-+/g, '-'); // 多个连字符转换为单个
+    .replace(/[\s_]+/g, '-') // 空格和下划线转换为连字符
+    .replace(/-+/g, '-') // 多个连字符转换为单个
+    .replace(/^-|-$/g, ''); // 移除首尾的连字符
 }
 
 /**
@@ -161,9 +162,9 @@ export function generateHtmlPage(
 }
 
 /**
- * HTML转义
+ * HTML转义 - 防止XSS攻击
  */
-function escapeHtml(text: string): string {
+export function escapeHtml(text: string): string {
   const map: { [key: string]: string } = {
     '&': '&amp;',
     '<': '&lt;',

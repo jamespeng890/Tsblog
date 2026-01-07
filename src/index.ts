@@ -1,7 +1,3 @@
-import { Buffer } from 'node:buffer';
-// ⚠️ 必须先执行这行注入，解决 jsonwebtoken 依赖问题
-(globalThis as any).Buffer = Buffer;
-
 import {
   handleLogin,
   handleRegister,
@@ -19,6 +15,7 @@ interface CloudflareEnv {
   DB: D1Database;
   ADMIN_USERNAME: string;
   ADMIN_PASSWORD: string;
+  JWT_SECRET?: string;
   ASSETS: Fetcher;
 }
 
@@ -52,10 +49,12 @@ export default {
 
     } catch (error: any) {
       console.error('Fatal Error:', error);
-      return new Response(JSON.stringify({ 
-        error: `Critical Error: ${error.message || 'Unknown'}`,
-        stack: error.stack 
-      }), { status: 500, headers });
+      // Don't expose stack traces in production for security
+      const errorResponse = {
+        error: 'Internal Server Error',
+        message: error.message || 'An unexpected error occurred',
+      };
+      return new Response(JSON.stringify(errorResponse), { status: 500, headers });
     }
   },
 };
@@ -65,6 +64,14 @@ async function handleApiRequest(request: Request, env: CloudflareEnv): Promise<R
   const pathname = url.pathname;
   const method = request.method;
 
+  // CORS Headers
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Admin-Key',
+    'Content-Type': 'application/json; charset=utf-8',
+  };
+
   let body: any = {};
   if (method !== 'GET' && method !== 'OPTIONS') {
     try {
@@ -72,7 +79,7 @@ async function handleApiRequest(request: Request, env: CloudflareEnv): Promise<R
     } catch {}
   }
 
-  const auth = parseAuthContext(request);
+  const auth = await parseAuthContext(request, env.JWT_SECRET);
 
   const apiRequest = {
     method,
@@ -83,6 +90,7 @@ async function handleApiRequest(request: Request, env: CloudflareEnv): Promise<R
     env: {
       ADMIN_USERNAME: env.ADMIN_USERNAME,
       ADMIN_PASSWORD: env.ADMIN_PASSWORD,
+      JWT_SECRET: env.JWT_SECRET,
     },
   };
 
@@ -117,6 +125,6 @@ async function handleApiRequest(request: Request, env: CloudflareEnv): Promise<R
 
   return new Response(JSON.stringify(response.body), {
     status: response.status,
-    headers: { ...headers, 'Content-Type': 'application/json' },
+    headers,
   });
 }

@@ -59,7 +59,10 @@ wrangler d1 execute blog-db --file schema.sql
 ```
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=your_secure_password
+JWT_SECRET=your-very-long-random-secret-key-at-least-32-characters
 ```
+
+**重要**: `JWT_SECRET` 应该是一个长的随机字符串（至少32字符）。在生产环境中必须设置此环境变量以确保安全性。
 
 ### 4. 本地开发
 
