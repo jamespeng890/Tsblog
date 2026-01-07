@@ -1,7 +1,3 @@
-import { Buffer } from 'node:buffer';
-// ⚠️ 必须先执行这行注入，解决 jsonwebtoken 依赖问题
-(globalThis as any).Buffer = Buffer;
-
 import {
   handleLogin,
   handleRegister,
@@ -72,7 +68,7 @@ async function handleApiRequest(request: Request, env: CloudflareEnv): Promise<R
     } catch {}
   }
 
-  const auth = parseAuthContext(request);
+  const auth = await parseAuthContext(request);
 
   const apiRequest = {
     method,
