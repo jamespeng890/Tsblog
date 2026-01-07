@@ -42,14 +42,64 @@ export function extractTokenFromHeader(authHeader: string | undefined): string |
   return authHeader.substring(7);
 }
 
-// 简单的密码比对（生产环境建议用 bcryptjs，但这里为了不再引入新坑，先用字符串比对）
-// 你的注册代码也是用的 base64，所以这里保持一致
+// Secure password hashing using Web Crypto API (SHA-256 with salt)
+// This is much more secure than base64 encoding
 export async function hashPassword(password: string): Promise<string> {
-  return btoa(password); // 使用 Web 标准的 btoa
+  const encoder = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const passwordData = encoder.encode(password);
+  
+  // Combine salt and password
+  const combined = new Uint8Array(salt.length + passwordData.length);
+  combined.set(salt);
+  combined.set(passwordData, salt.length);
+  
+  // Hash the combined data
+  const hashBuffer = await crypto.subtle.digest('SHA-256', combined);
+  const hashArray = new Uint8Array(hashBuffer);
+  
+  // Combine salt and hash for storage
+  const result = new Uint8Array(salt.length + hashArray.length);
+  result.set(salt);
+  result.set(hashArray, salt.length);
+  
+  // Convert to base64 for storage
+  return btoa(String.fromCharCode(...result));
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return btoa(password) === hash;
+  try {
+    const encoder = new TextEncoder();
+    
+    // Decode the stored hash
+    const decoded = Uint8Array.from(atob(hash), c => c.charCodeAt(0));
+    
+    // Extract salt (first 16 bytes)
+    const salt = decoded.slice(0, 16);
+    const storedHash = decoded.slice(16);
+    
+    // Hash the input password with the same salt
+    const passwordData = encoder.encode(password);
+    const combined = new Uint8Array(salt.length + passwordData.length);
+    combined.set(salt);
+    combined.set(passwordData, salt.length);
+    
+    const hashBuffer = await crypto.subtle.digest('SHA-256', combined);
+    const computedHash = new Uint8Array(hashBuffer);
+    
+    // Compare hashes
+    if (computedHash.length !== storedHash.length) return false;
+    
+    let match = true;
+    for (let i = 0; i < computedHash.length; i++) {
+      if (computedHash[i] !== storedHash[i]) match = false;
+    }
+    
+    return match;
+  } catch (error) {
+    console.error('Password verification error:', error);
+    return false;
+  }
 }
 
 // 解析 AuthContext 现在需要变成异步的了

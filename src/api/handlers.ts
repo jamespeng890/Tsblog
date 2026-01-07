@@ -1,4 +1,4 @@
-import { parseMarkdown } from '../utils/markdown.js';
+import { parseMarkdown, escapeHtml } from '../utils/markdown.js';
 import { AuthContext, generateToken, hashPassword, verifyPassword } from '../utils/auth.js';
 
 export interface ApiRequest {
@@ -14,6 +14,25 @@ export interface ApiResponse {
   status: number;
   body: Record<string, unknown> | string;
   headers?: Record<string, string>;
+}
+
+/**
+ * 输入验证和清理辅助函数
+ */
+function sanitizeString(input: string | undefined, maxLength: number = 255): string {
+  if (!input || typeof input !== 'string') return '';
+  return escapeHtml(input.trim().slice(0, maxLength));
+}
+
+function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+function validateUsername(username: string): boolean {
+  // Username should be 3-50 characters, alphanumeric with underscores and hyphens
+  const usernameRegex = /^[a-zA-Z0-9_-]{3,50}$/;
+  return usernameRegex.test(username);
 }
 
 /**
@@ -112,8 +131,22 @@ export async function handleRegister(request: ApiRequest): Promise<ApiResponse> 
     return { status: 400, body: { error: '用户名、邮箱和密码不能为空' } };
   }
 
+  // Validate username format
+  if (!validateUsername(username)) {
+    return { status: 400, body: { error: '用户名格式无效，只能包含字母、数字、下划线和连字符，长度3-50字符' } };
+  }
+
+  // Validate email format
+  if (!validateEmail(email)) {
+    return { status: 400, body: { error: '邮箱格式无效' } };
+  }
+
   if (password.length < 6) {
     return { status: 400, body: { error: '密码至少需要6个字符' } };
+  }
+
+  if (password.length > 128) {
+    return { status: 400, body: { error: '密码不能超过128个字符' } };
   }
 
   try {
@@ -121,7 +154,7 @@ export async function handleRegister(request: ApiRequest): Promise<ApiResponse> 
 
     const result = await request.db
       .prepare('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)')
-      .bind(username, email, passwordHash)
+      .bind(username.trim(), email.trim().toLowerCase(), passwordHash)
       .run();
 
     return {
@@ -162,6 +195,17 @@ export async function handleCreatePost(request: ApiRequest): Promise<ApiResponse
     return { status: 400, body: { error: '标题和内容不能为空' } };
   }
 
+  // Validate title length
+  const sanitizedTitle = sanitizeString(title, 200);
+  if (sanitizedTitle.length < 1) {
+    return { status: 400, body: { error: '标题不能为空' } };
+  }
+
+  // Validate content length (max 100KB)
+  if (typeof markdownContent !== 'string' || markdownContent.length > 100000) {
+    return { status: 400, body: { error: '内容过长或格式无效' } };
+  }
+
   try {
     const parsed = await parseMarkdown(markdownContent);
     const slug = parsed.metadata.slug;
@@ -171,7 +215,7 @@ export async function handleCreatePost(request: ApiRequest): Promise<ApiResponse
         `INSERT INTO posts (title, slug, markdown_content, content, author_id, published)
          VALUES (?, ?, ?, ?, ?, ?)`,
       )
-      .bind(title, slug, markdownContent, parsed.html, request.auth.userId || 0, published ? 1 : 0)
+      .bind(sanitizedTitle, slug, markdownContent, parsed.html, request.auth.userId || 0, published ? 1 : 0)
       .run();
 
     return {
@@ -261,13 +305,32 @@ export async function handleCreateComment(request: ApiRequest): Promise<ApiRespo
     return { status: 400, body: { error: '缺少必要字段' } };
   }
 
+  // Validate and sanitize inputs
+  const sanitizedAuthorName = sanitizeString(authorName, 100);
+  const sanitizedContent = sanitizeString(content, 2000);
+
+  if (sanitizedAuthorName.length < 2) {
+    return { status: 400, body: { error: '作者名称至少需要2个字符' } };
+  }
+
+  if (sanitizedContent.length < 1) {
+    return { status: 400, body: { error: '评论内容不能为空' } };
+  }
+
+  // Validate email if provided
+  if (authorEmail && !validateEmail(authorEmail)) {
+    return { status: 400, body: { error: '邮箱格式无效' } };
+  }
+
+  const sanitizedEmail = authorEmail ? authorEmail.trim().toLowerCase() : null;
+
   try {
     const result = await request.db
       .prepare(
         `INSERT INTO comments (post_id, user_id, author_name, author_email, content, status)
          VALUES (?, ?, ?, ?, ?, ?)`,
       )
-      .bind(postId, request.auth.userId || null, authorName, authorEmail, content, 'pending')
+      .bind(postId, request.auth.userId || null, sanitizedAuthorName, sanitizedEmail, sanitizedContent, 'pending')
       .run();
 
     return {

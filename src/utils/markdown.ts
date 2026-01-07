@@ -161,9 +161,9 @@ export function generateHtmlPage(
 }
 
 /**
- * HTML转义
+ * HTML转义 - 防止XSS攻击
  */
-function escapeHtml(text: string): string {
+export function escapeHtml(text: string): string {
   const map: { [key: string]: string } = {
     '&': '&amp;',
     '<': '&lt;',
